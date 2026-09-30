@@ -33,6 +33,17 @@ Format: what happened, why, fix, rule.
 - **Why:** the workflow runs on every push, and a run posts 225 bookings.
 - **Rule:** commits that only change docs get `[skip ci]` in the message.
 
+## 7. Rewriting a data file hid the real change
+- **What happened:** adding case 26 by re-saving the whole `edge-cases.json` also changed the spacing of the other 25 cases. The change looked like 25 lines instead of 6.
+- **Fix:** checked the 25 were identical in content, reverted, and appended only the new case.
+- **Rule:** edit data files minimally and check the size of the diff before committing.
+
+## 8. OPEN: cleanup failed with 403 in run #3
+- **What happened:** after 5 successful deletes, the remaining 18 got HTTP 403. Runs #1 and #2 deleted everything with the same code.
+- **Why:** not confirmed. Hypothesis: the site's 10-minute reset invalidated the login token mid-cleanup.
+- **Fix:** not done yet. Proposed: on 403, log in again once and retry that delete.
+- **Rule:** never report cleanup as done without checking the count; "5/23" is a failure.
+
 ## Known quirks (not our mistakes, but easy to trip over)
 - restful-booker answers a successful DELETE with `201 Created`, not `200` or `204`.
 - DELETE needs the token as a cookie (`Cookie: token=...`), not an `Authorization` header.

@@ -32,21 +32,21 @@ The same steps run in GitHub Actions (`.github/workflows/pipeline.yml`) on every
 
 ## Results
 
-Real output from GitHub Actions runs [#1](https://github.com/Axofox/Synthetic-test-data/actions/runs/36697089440) and [#2](https://github.com/Axofox/Synthetic-test-data/actions/runs/36698220892) on 2026-09-30. Both runs gave the same verdicts. The field-level changes come from run #2, the first one that printed them.
+Real output from GitHub Actions runs [#1](https://github.com/Axofox/Synthetic-test-data/actions/runs/36697089440), [#2](https://github.com/Axofox/Synthetic-test-data/actions/runs/36698220892) (25 edge cases) and [#3](https://github.com/Axofox/Synthetic-test-data/actions/runs/36719724998) (26 edge cases, bulk load skipped with `[edge-only]`) on 2026-09-30. Cases 1-25 got the same verdicts in all three runs. The field-level changes come from run #2 onward.
 
 | Measure | Result |
 |---|---|
 | Bulk records generated | 200, all valid, identical SHA-256 across 3 local runs |
 | Bulk load | 200 created, 0 failed; cleanup deleted 200/200 (run #1) |
-| Edge cases | 25 (11 expected valid, 14 expected invalid) |
-| Rejected by my schema | 14 of 25 (matches `expectedValid` 25/25) |
-| Accepted by the API | 22 of 25 (the other 3 got HTTP 500) |
-| Edge cases where the API surprised us | 15 of 25 |
-| Edge-case cleanup | 22/22 deleted |
+| Edge cases | 26 (11 expected valid, 15 expected invalid) |
+| Rejected by my schema | 15 of 26 (matches `expectedValid` 26/26) |
+| Accepted by the API | 23 of 26 (the other 3 got HTTP 500) |
+| Edge cases where the API surprised us | 16 of 26 |
+| Edge-case cleanup | 22/22 deleted in runs #1 and #2; **only 5/23 in run #3** (see Limitations) |
 
 ### Findings
 
-**A. The API accepts bookings my rules call invalid (11 cases, HTTP 200)**
+**A. The API accepts bookings my rules call invalid (12 cases, HTTP 200)**
 
 | Case | Input | What the API did |
 |---|---|---|
@@ -61,6 +61,7 @@ Real output from GitHub Actions runs [#1](https://github.com/Axofox/Synthetic-te
 | edge-18 | totalprice `-100` | accepted |
 | edge-24 | totalprice `"500"` (string) | accepted, converted to number `500` |
 | edge-25 | depositpaid `"yes"` (string) | accepted, converted to `true` |
+| edge-26 | unknown extra field `licenceplate` | accepted, field silently dropped (reviewer decision was: refuse with an error) |
 
 **B. Server errors instead of a 4xx client error (3 cases, HTTP 500 "Internal Server Error")**
 
@@ -80,4 +81,5 @@ The worst finding is `0NaN-aN-aN`. The API reports success but stores a date tha
 - **LLM output is non-deterministic.** Asking again gives different edge cases, so the file is stored in the repo. The bulk data is reproducible because of the seed; the edge cases are reproducible because they are committed.
 - **`expectedValid` comes from my rules, so 25/25 is not independent proof.** It shows the validator implements my intent. The API check is the independent one, and those are judgement calls such as same-day stays being invalid and no maximum name length.
 - **Shared practice server.** Other people use it, so requests are spaced 500 ms apart and everything created is deleted. Data can change or disappear at any time, and a failed cleanup can leave records behind (the scripts print leftover ids).
+- **Cleanup is not guaranteed.** In run #3, 18 of 23 deletes got HTTP 403 after the first 5 succeeded; runs #1 and #2 deleted everything with the same code. The cause is not confirmed (one hypothesis: the site's 10-minute reset invalidated the login token). The leftover ids are printed in the run log.
 - Prices are only checked to be a number above 0, with no upper bound or currency precision rule.
