@@ -1,30 +1,21 @@
-# Notes for Claude
+# Rules for the AI working on this project
 
-## Who this project is for
-A QA engineer building a portfolio project to explain in job interviews. They must be able to explain every line, so no magic.
+## Before starting any work
+- Read `gotcha.md` and do not repeat any mistake listed there.
 
-## How to explain things
-- Plain, non-technical language first. Use everyday analogies (the "hotel" analogy works well: restful-booker = a practice hotel, endpoints = counters, our project = a mystery shopper who cleans up afterwards).
-- Explain any jargon the moment it appears (API, JSON, token, endpoint, CI...).
-- One file or topic at a time; short answers; ask before moving on.
-- End explanations with a one-sentence "interview answer" they can reuse.
-- Be honest about what was NOT tested or verified. Never invent results.
-- Be encouraging. No question is too basic.
+## How to explain
+- Plain, non-technical language first, with everyday analogies. Explain jargon the moment it appears.
+- One file or topic at a time. Short answers. Ask before moving on.
+- End an explanation with a one-sentence answer that could be used in a job interview.
+- Every line of code must be explainable: no magic, no unexplained tricks.
 
-## What they already understand (as of 2026-09-30)
-- restful-booker is Mark Winteringham's public practice API (hosted by Ministry of Testing) with deliberate bugs; it resets every 10 minutes. They have seen the home page and the API docs (/apidoc/index.html).
-- An API has no clickable website; you send requests and get answers. Create / Read / Update / Delete.
-- Our project only used Ping, Auth, CreateBooking and DeleteBooking. It never read or updated bookings.
-- Generation and local validation run without the API.
-- The findings (invalid bookings accepted, dates stored as "0NaN-aN-aN", 500 errors on missing fields, 199.99 -> 199).
-- Security: only basic injection probes (SQL-like, HTML-like names), not a real security test. Privacy: covered by design (all data synthetic, everything deleted).
-- The cloud sandbox cannot reach restful-booker; the pipeline runs in GitHub Actions instead.
+## How to work
+- Never invent results. Run the code and report the real output.
+- Say clearly what was NOT tested or verified.
+- Measure, don't estimate: count lengths, rows and findings from real output.
+- Before trusting an API result, confirm the API itself was reached (a proxy or firewall answer is not an API answer).
+- Be gentle with the shared practice server: delays between requests, always clean up, and add `[skip ci]` to commits that only change docs.
+- Never put personal information in the repository.
 
-## Code walkthrough progress
-- Done: project map, `src/schema.ts` (two layers: Zod structure + business rules; the Feb-29 date trick).
-- Next: `src/generate.ts` (the "cook"), then `src/api.ts` side by side with the API docs, then `load.ts`, `validate-edge-cases.ts`, `run-edge-cases.ts`, the workflow file.
-
-## Ideas they may want later
-- Tests for GetBooking (does it return what we created?) and UpdateBooking (are new dates checked?).
-- Safe auth checks: delete without a token; read without logging in.
-- README note that the site has deliberate bugs.
+## When a mistake happens
+- Add an entry to `gotcha.md`: what went wrong, why, how it was fixed, and the rule that prevents it.
