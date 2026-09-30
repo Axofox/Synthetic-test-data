@@ -148,5 +148,11 @@
     "reason": "Wrong type: depositpaid is the string \"yes\" instead of a boolean.",
     "expectedValid": false,
     "booking": { "firstname": "Bo", "lastname": "Boolean", "totalprice": 100, "depositpaid": "yes", "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-26",
+    "reason": "Unknown extra field: a licence plate the API has no field for. Reviewer decision: unknown fields must be refused with an error (not ignored, not stored), so nobody is encouraged to probe the API and no unplanned personal data is kept.",
+    "expectedValid": false,
+    "booking": { "firstname": "Lena", "lastname": "Licence", "totalprice": 120, "depositpaid": true, "bookingdates": { "checkin": "2026-11-02", "checkout": "2026-11-04" }, "additionalneeds": "Parking", "licenceplate": "KS03DCE" }
   }
 ]

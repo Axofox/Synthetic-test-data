@@ -2,12 +2,14 @@ import { z } from "zod";
 
 // ---------- Layer 1: structure (types and presence) ----------
 
-export const BookingSchema = z.object({
+// strictObject refuses unknown fields (e.g. a licence plate) instead of silently dropping them.
+// Reviewer decision: an unknown field is an error, so nobody is encouraged to probe the API.
+export const BookingSchema = z.strictObject({
   firstname: z.string(),
   lastname: z.string(),
   totalprice: z.number(),
   depositpaid: z.boolean(),
-  bookingdates: z.object({
+  bookingdates: z.strictObject({
     checkin: z.string(),
     checkout: z.string(),
   }),
