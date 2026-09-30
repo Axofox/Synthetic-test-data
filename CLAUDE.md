@@ -1,7 +1,7 @@
 # Rules for the AI working on this project
 
 ## Before starting any work
-- Read `gotcha.md` and do not repeat any mistake listed there.
+- Read `GOTCHA.md` and do not repeat any mistake listed there.
 
 ## How to explain
 - Plain, non-technical language first, with everyday analogies. Explain jargon the moment it appears.
@@ -18,4 +18,4 @@
 - Never put personal information in the repository.
 
 ## When a mistake happens
-- Add an entry to `gotcha.md`: what went wrong, why, how it was fixed, and the rule that prevents it.
+- Add an entry to `GOTCHA.md`: what went wrong, why, how it was fixed, and the rule that prevents it.
