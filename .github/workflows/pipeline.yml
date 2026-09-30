@@ -1,0 +1,32 @@
+# Runs the pipeline on GitHub's machines, which can reach restful-booker.
+name: pipeline
+
+on:
+  push:
+    branches: [claude/busy-bohr-4ou2u5, main]
+  workflow_dispatch: # adds a "Run workflow" button once this file is on the default branch
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run generate
+      - run: npm run validate
+      - run: npm run load
+      # Findings make this script exit 1 on purpose. Keep going so the results still get uploaded.
+      - run: npm run run-edge-cases
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: edge-case-results
+          path: data/edge-case-results.json
+          if-no-files-found: warn
