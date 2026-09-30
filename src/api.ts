@@ -47,6 +47,17 @@ async function request(
   }
 }
 
+// Preflight: confirm we are really talking to the API before doing anything.
+// Without this, a proxy or firewall answering 403 would look like "the API rejected our booking"
+// and produce false findings. A healthy restful-booker answers GET /ping with a 2xx.
+export async function assertApiReachable(): Promise<void> {
+  const res = await request("GET", "/ping");
+  if (res.status < 200 || res.status >= 300) {
+    const detail = res.networkError ?? JSON.stringify(res.body);
+    throw new Error(`API not reachable: GET ${BASE_URL}/ping returned status ${res.status}: ${detail}`);
+  }
+}
+
 // POST /booking. `payload` is `unknown` on purpose: edge cases send deliberately malformed data.
 export const createBooking = (payload: unknown) => request("POST", "/booking", { body: payload });
 

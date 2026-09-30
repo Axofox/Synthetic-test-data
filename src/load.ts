@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { authenticate, createBooking, deleteBooking, sleep } from "./api.js";
+import { assertApiReachable, authenticate, createBooking, deleteBooking, sleep } from "./api.js";
 import type { Booking } from "./schema.js";
 
 const DELAY_MS = 500; // pause between requests: it's a shared public server
@@ -9,6 +9,14 @@ const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : Infinity; // e.g. 
 const file = path.join(import.meta.dirname, "..", "data", "bulk-bookings.json");
 const all = JSON.parse(readFileSync(file, "utf8")) as Booking[];
 const bookings = all.slice(0, LIMIT);
+
+// Abort early if the API is not reachable, instead of logging 200 failures.
+try {
+  await assertApiReachable();
+} catch (err) {
+  console.error(err instanceof Error ? err.message : err);
+  process.exit(1);
+}
 
 console.log(`Loading ${bookings.length} bookings (delay ${DELAY_MS} ms between requests)`);
 
