@@ -21,14 +21,20 @@ interface Result {
   findings: string[];
 }
 
-// JSON with object keys sorted, so two objects with the same content compare equal
-// regardless of key order.
-const canonical = (v: unknown): string =>
-  JSON.stringify(v, (_key, val) =>
-    val && typeof val === "object" && !Array.isArray(val)
-      ? Object.fromEntries(Object.entries(val).sort(([a], [b]) => a.localeCompare(b)))
-      : val,
-  );
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  v !== null && typeof v === "object" && !Array.isArray(v);
+
+// Compare what we sent with what the API returned, field by field.
+// Returns one line per changed field, e.g. `totalprice: 199.99 -> 199`. Empty list = identical.
+function diffFields(sent: unknown, got: unknown, prefix = ""): string[] {
+  if (isObject(sent) && isObject(got)) {
+    const keys = new Set([...Object.keys(sent), ...Object.keys(got)]);
+    return [...keys].flatMap((k) => diffFields(sent[k], got[k], prefix ? `${prefix}.${k}` : k));
+  }
+  const a = JSON.stringify(sent);
+  const b = JSON.stringify(got);
+  return a === b ? [] : [`${prefix || "(root)"}: ${a ?? "missing"} -> ${b ?? "missing"}`];
+}
 
 const dataDir = path.join(import.meta.dirname, "..", "data");
 const cases = JSON.parse(readFileSync(path.join(dataDir, "edge-cases.json"), "utf8")) as EdgeCase[];
@@ -61,8 +67,9 @@ try {
     if (apiVerdict === "accepted" && !c.expectedValid) findings.push("API ACCEPTS INVALID booking");
     if (apiVerdict === "rejected" && c.expectedValid) findings.push("API REJECTS VALID booking");
     if (res.status >= 500) findings.push(`SERVER ERROR ${res.status} on this input (expected a 4xx)`);
-    if (apiVerdict === "accepted" && canonical(returned?.booking) !== canonical(c.booking)) {
-      findings.push("DATA ALTERED: API returned a booking different from what was sent");
+    if (apiVerdict === "accepted") {
+      const changed = diffFields(c.booking, returned?.booking);
+      if (changed.length > 0) findings.push(`DATA ALTERED: ${changed.join(", ")}`);
     }
 
     results.push({
