@@ -1,0 +1,26 @@
+{
+  "name": "synthetic-test-data",
+  "version": "1.0.0",
+  "description": "Synthetic test data pipeline for restful-booker",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "tsx src/generate.ts",
+    "load": "tsx src/load.ts",
+    "validate": "tsx src/validate-edge-cases.ts",
+    "run-edge-cases": "tsx src/run-edge-cases.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
