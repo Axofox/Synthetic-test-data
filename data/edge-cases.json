@@ -1,0 +1,152 @@
+[
+  {
+    "id": "edge-01",
+    "reason": "Boundary date: same-day checkin and checkout (0 nights). Our rule says checkout must be strictly after checkin.",
+    "expectedValid": false,
+    "booking": { "firstname": "Sam", "lastname": "Sameday", "totalprice": 100, "depositpaid": true, "bookingdates": { "checkin": "2026-06-15", "checkout": "2026-06-15" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-02",
+    "reason": "Boundary date: leap day 2028-02-29 as checkin. 2028 is a leap year so this is a real date.",
+    "expectedValid": true,
+    "booking": { "firstname": "Leah", "lastname": "Leapyear", "totalprice": 250, "depositpaid": false, "bookingdates": { "checkin": "2028-02-29", "checkout": "2028-03-01" }, "additionalneeds": "Breakfast" }
+  },
+  {
+    "id": "edge-03",
+    "reason": "Invalid date: Feb 29 in a NON-leap year (2027). Matches the YYYY-MM-DD shape but is not a real calendar date.",
+    "expectedValid": false,
+    "booking": { "firstname": "Nora", "lastname": "Nonleap", "totalprice": 250, "depositpaid": false, "bookingdates": { "checkin": "2027-02-29", "checkout": "2027-03-02" }, "additionalneeds": "Breakfast" }
+  },
+  {
+    "id": "edge-04",
+    "reason": "Year boundary: stay spans 31 Dec to 1 Jan. Should be a normal one-night booking.",
+    "expectedValid": true,
+    "booking": { "firstname": "Yara", "lastname": "Newyear", "totalprice": 300, "depositpaid": true, "bookingdates": { "checkin": "2026-12-31", "checkout": "2027-01-01" }, "additionalneeds": "Late checkout" }
+  },
+  {
+    "id": "edge-05",
+    "reason": "Checkout is BEFORE checkin (negative stay).",
+    "expectedValid": false,
+    "booking": { "firstname": "Tim", "lastname": "Backwards", "totalprice": 150, "depositpaid": false, "bookingdates": { "checkin": "2026-08-10", "checkout": "2026-08-05" }, "additionalneeds": "Parking" }
+  },
+  {
+    "id": "edge-06",
+    "reason": "Extreme but valid dates: last days of year 9999. Tests date handling at the far end of the range.",
+    "expectedValid": true,
+    "booking": { "firstname": "Faye", "lastname": "Faraway", "totalprice": 500, "depositpaid": false, "bookingdates": { "checkin": "9999-12-30", "checkout": "9999-12-31" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-07",
+    "reason": "Wrong date format: DD/MM/YYYY instead of YYYY-MM-DD.",
+    "expectedValid": false,
+    "booking": { "firstname": "Dora", "lastname": "Dateformat", "totalprice": 200, "depositpaid": true, "bookingdates": { "checkin": "15/06/2026", "checkout": "20/06/2026" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-08",
+    "reason": "Impossible date: month 13.",
+    "expectedValid": false,
+    "booking": { "firstname": "Milo", "lastname": "Monthly", "totalprice": 200, "depositpaid": true, "bookingdates": { "checkin": "2026-13-01", "checkout": "2026-13-05" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-09",
+    "reason": "Date with a time component (ISO datetime) instead of a plain date. Not YYYY-MM-DD.",
+    "expectedValid": false,
+    "booking": { "firstname": "Tia", "lastname": "Timestamp", "totalprice": 200, "depositpaid": true, "bookingdates": { "checkin": "2026-06-15T10:00:00Z", "checkout": "2026-06-18T10:00:00Z" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-10",
+    "reason": "Unicode names: accented Latin and Vietnamese characters plus CJK in the lastname. Should round-trip unchanged.",
+    "expectedValid": true,
+    "booking": { "firstname": "José Nguyễn", "lastname": "山田 Müller-Łukasiewicz", "totalprice": 400, "depositpaid": true, "bookingdates": { "checkin": "2026-09-01", "checkout": "2026-09-04" }, "additionalneeds": "Breakfast" }
+  },
+  {
+    "id": "edge-11",
+    "reason": "Apostrophes in names (D'Arcy, O'Brien). Classic bug source for naive string-built queries.",
+    "expectedValid": true,
+    "booking": { "firstname": "D'Arcy", "lastname": "O'Brien", "totalprice": 180, "depositpaid": false, "bookingdates": { "checkin": "2026-07-01", "checkout": "2026-07-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-12",
+    "reason": "Very long firstname (250 characters). Our rules define no maximum length, so this is valid per our rules; it probes whether the API enforces its own limit.",
+    "expectedValid": true,
+    "booking": { "firstname": "AbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghijAbcdefghij", "lastname": "Longname", "totalprice": 120, "depositpaid": false, "bookingdates": { "checkin": "2026-05-01", "checkout": "2026-05-02" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-13",
+    "reason": "Emoji in names. Emoji are multi-byte (and some are multiple code points), which can break length checks and database encodings.",
+    "expectedValid": true,
+    "booking": { "firstname": "🏨Sam", "lastname": "Tester😀", "totalprice": 130, "depositpaid": true, "bookingdates": { "checkin": "2026-05-10", "checkout": "2026-05-12" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-14",
+    "reason": "Firstname consisting only of spaces. Not empty as a raw string, but empty after trimming, so invalid.",
+    "expectedValid": false,
+    "booking": { "firstname": "   ", "lastname": "Spacey", "totalprice": 130, "depositpaid": true, "bookingdates": { "checkin": "2026-05-10", "checkout": "2026-05-12" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-15",
+    "reason": "SQL-injection-style string in a name. It is just text, so valid per our rules; a safe backend must store it as data and never execute it.",
+    "expectedValid": true,
+    "booking": { "firstname": "Robert'); DROP TABLE bookings;--", "lastname": "Tables", "totalprice": 140, "depositpaid": false, "bookingdates": { "checkin": "2026-05-20", "checkout": "2026-05-22" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-16",
+    "reason": "HTML/XSS-style string in a name and in additionalneeds. Valid text per our rules; a safe app must escape it on output.",
+    "expectedValid": true,
+    "booking": { "firstname": "<script>alert(1)</script>", "lastname": "<b>Bold</b>", "totalprice": 140, "depositpaid": false, "bookingdates": { "checkin": "2026-05-20", "checkout": "2026-05-22" }, "additionalneeds": "<img src=x onerror=alert(1)>" }
+  },
+  {
+    "id": "edge-17",
+    "reason": "Extreme price: totalprice is 0. Our rule requires > 0.",
+    "expectedValid": false,
+    "booking": { "firstname": "Zed", "lastname": "Zeroprice", "totalprice": 0, "depositpaid": false, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-18",
+    "reason": "Extreme price: negative totalprice.",
+    "expectedValid": false,
+    "booking": { "firstname": "Neil", "lastname": "Negative", "totalprice": -100, "depositpaid": false, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-19",
+    "reason": "Extreme price: huge value (999,999,999,999). Valid per our rules (no maximum); probes integer overflow or storage limits.",
+    "expectedValid": true,
+    "booking": { "firstname": "Hugo", "lastname": "Huge", "totalprice": 999999999999, "depositpaid": true, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-20",
+    "reason": "Decimal price 199.99. Money has cents, so valid per our rules; probes whether the API truncates or rounds it.",
+    "expectedValid": true,
+    "booking": { "firstname": "Dee", "lastname": "Decimal", "totalprice": 199.99, "depositpaid": true, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-21",
+    "reason": "Missing field: lastname is absent entirely.",
+    "expectedValid": false,
+    "booking": { "firstname": "Mia", "totalprice": 100, "depositpaid": true, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-22",
+    "reason": "Null field: firstname is null instead of a string.",
+    "expectedValid": false,
+    "booking": { "firstname": null, "lastname": "Nullson", "totalprice": 100, "depositpaid": true, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-23",
+    "reason": "Missing field: the whole bookingdates object is absent.",
+    "expectedValid": false,
+    "booking": { "firstname": "Dana", "lastname": "Nodates", "totalprice": 100, "depositpaid": true, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-24",
+    "reason": "Wrong type: totalprice is the string \"500\" instead of the number 500.",
+    "expectedValid": false,
+    "booking": { "firstname": "Stan", "lastname": "Stringprice", "totalprice": "500", "depositpaid": true, "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  },
+  {
+    "id": "edge-25",
+    "reason": "Wrong type: depositpaid is the string \"yes\" instead of a boolean.",
+    "expectedValid": false,
+    "booking": { "firstname": "Bo", "lastname": "Boolean", "totalprice": 100, "depositpaid": "yes", "bookingdates": { "checkin": "2026-06-01", "checkout": "2026-06-03" }, "additionalneeds": "None" }
+  }
+]
