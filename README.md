@@ -26,23 +26,54 @@ npm run run-edge-cases    # send edge cases to the API, write data/edge-case-res
 npm run typecheck
 ```
 
+The same steps run in GitHub Actions (`.github/workflows/pipeline.yml`) on every push, so the pipeline also runs where the API is reachable. The edge-case step exits 1 when it finds something, so the workflow keeps going and uploads `edge-case-results.json` as a run artifact.
+
 `BASE_URL` can override the API address.
 
 ## Results
 
-| Measure | Result | Source |
-|---|---|---|
-| Bulk records generated | 200 (all valid, identical SHA-256 across 3 runs) | `npm run generate`, run |
-| Edge cases | 25 (11 expected valid, 14 expected invalid) | `data/edge-cases.json` |
-| Edge cases rejected by my schema | 14 of 25 (11 accepted) | `npm run validate`, run |
-| Schema verdict matches `expectedValid` | 25 of 25 | `npm run validate`, run |
-| Edge cases where the API surprised us | **Not yet run** | needs `npm run run-edge-cases` |
-| Bulk load and cleanup against the API | **Not yet run** | needs `npm run load` |
-| Findings | **None recorded yet** | see above |
+Real output from GitHub Actions runs [#1](https://github.com/Axofox/Synthetic-test-data/actions/runs/36697089440) and [#2](https://github.com/Axofox/Synthetic-test-data/actions/runs/36698220892) on 2026-09-30. Both runs gave the same verdicts. The field-level changes come from run #2, the first one that printed them.
 
-The API rows are empty on purpose. The environment where this was built blocked outbound access to
-`restful-booker.herokuapp.com` (HTTP 403 "Host not in allowlist"), so no API results exist yet. Run the two
-API scripts from a machine with internet access and fill in the rows from the real output.
+| Measure | Result |
+|---|---|
+| Bulk records generated | 200, all valid, identical SHA-256 across 3 local runs |
+| Bulk load | 200 created, 0 failed; cleanup deleted 200/200 (run #1) |
+| Edge cases | 25 (11 expected valid, 14 expected invalid) |
+| Rejected by my schema | 14 of 25 (matches `expectedValid` 25/25) |
+| Accepted by the API | 22 of 25 (the other 3 got HTTP 500) |
+| Edge cases where the API surprised us | 15 of 25 |
+| Edge-case cleanup | 22/22 deleted |
+
+### Findings
+
+**A. The API accepts bookings my rules call invalid (11 cases, HTTP 200)**
+
+| Case | Input | What the API did |
+|---|---|---|
+| edge-01 | same-day checkin/checkout | accepted |
+| edge-03 | checkin `2027-02-29` (not a leap year) | accepted, silently changed to `2027-03-01` |
+| edge-05 | checkout before checkin | accepted |
+| edge-07 | dates `15/06/2026` (DD/MM/YYYY) | accepted, stored both dates as `0NaN-aN-aN` |
+| edge-08 | month 13 (`2026-13-01`) | accepted, stored both dates as `0NaN-aN-aN` |
+| edge-09 | datetime `2026-06-15T10:00:00Z` | accepted, cut to `2026-06-15` |
+| edge-14 | firstname `"   "` | accepted, stored as empty string `""` |
+| edge-17 | totalprice `0` | accepted |
+| edge-18 | totalprice `-100` | accepted |
+| edge-24 | totalprice `"500"` (string) | accepted, converted to number `500` |
+| edge-25 | depositpaid `"yes"` (string) | accepted, converted to `true` |
+
+**B. Server errors instead of a 4xx client error (3 cases, HTTP 500 "Internal Server Error")**
+
+edge-21 (missing lastname), edge-22 (firstname `null`), edge-23 (missing bookingdates).
+A missing or null field should give a 400 with a message, not crash the server.
+
+**C. A valid booking was changed silently (1 case)**
+
+edge-20: totalprice `199.99` came back as `199`. The API drops the cents without an error.
+
+**What worked:** all 11 valid cases were accepted. Unicode, apostrophes, a 250-character name, emoji, SQL-like and HTML-like strings, a huge price and year 9999 came back unchanged, except for the decimal price in C.
+
+The worst finding is `0NaN-aN-aN`. The API reports success but stores a date that isn't a date, so the bad data only shows up later, when something reads it.
 
 ## Limitations
 
