@@ -16,6 +16,7 @@
 - Before trusting an API result, confirm the API itself was reached (a proxy or firewall answer is not an API answer).
 - Be gentle with the shared practice server: delays between requests, always clean up, and add `[skip ci]` to commits that only change docs.
 - Never put personal information in the repository.
+- AI-generated test cases must be reviewed blind by a human, using `REVIEW-TEMPLATE.md`, before they are trusted.
 
 ## When a mistake happens
 - Add an entry to `GOTCHA.md`: what went wrong, why, how it was fixed, and the rule that prevents it.
